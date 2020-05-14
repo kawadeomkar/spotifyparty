@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>SpotifyParty</title>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.8/socket.io.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    </head>
+    <body>
+        <script type="text/javascript">
+            $(document).ready(function() {
+            	var socket = io.connect('http://localhost:5000');
+            	socket.on('connect', function() {
+            		socket.send('User has connected!');
+            	});
+
+            	socket.on('search', function(msg) {
+            		$("#messages").append(msg);
+            		console.log('Received message');
+            	});
+
+            	$('#sendbutton').on('click', function() {
+            		socket.emit('search', $('#query').val());
+            		$('#query').val('');
+                    console.log('in search handler');
+            	});
+            });
+            </script>
+        <ul id="messages"></ul>
+        <input type="text" id="query">
+        <button id="sendbutton">Send</button>
+    </body>
+</html>
