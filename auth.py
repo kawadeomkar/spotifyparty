@@ -24,6 +24,9 @@ def getToken(code, client_id, client_secret, redirect_uri):
 
     post = requests.post(AUTH_TOKEN, params=body, headers=headers)
     if post.status_code != 200:
+        print(post.status_code, post.text)
+        if post.status_code == 400:
+            raise Exception # TODO: handle invalid auth code error
         raise Exception
     return json.loads(post.text)
 

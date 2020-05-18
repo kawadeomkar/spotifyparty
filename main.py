@@ -6,6 +6,8 @@ from server import Server
 import appauth
 import spotipy
 import spotipy.util as util
+import time
+import sys
 
 
 app = Flask(__name__)
@@ -16,56 +18,78 @@ party = Server()
 
 @socketio.on('search')
 def handleMessage(msg):
-    sp = party.session_id_user_map[request.sid].Spotify
+    sp = party.access_token_user_map[session["token_data"]["access_token"]].Spotify
     msgs = sp.search(msg)
+    res = ""
     for item in msgs['tracks']['items']:
-        song = item['name']
         artist = ", ".join(list(map(lambda x: x['name'], item['artists'])))
-        album = item['album']['name']
-        uri = item["uri"]
-        emit(
-            'search',
-            f"""
-            <li value="{uri}">
-                <p>{artist}</p>
-                <p>{song}</p>
-                <p>{album}</p>
+        res += f"""
+            <li value="{item["uri"]}">
+                <p>{item['name']}</p>
+                <p>{artist} {item['album']['name']}</p>
             </li>
             """
-        )
+    print(res)
+    print(party.access_token_user_map)
+    emit('search', res)
+
+def usersDisplayHTML(users):
+    return  "".join(
+        list(map(lambda x: f"""
+            <li>
+                <p>{x}</p>
+            </li>
+            """, users)))
+
 
 @socketio.on('connect')
 def handleConnect():
-    session["sid"] = request.sid
-    print("CONNECTED", request.sid)
-    print(session["token_data"])
-    party.addUser(session["token_data"], request.sid)
-    return redirect(appauth.getUser())
+    print("CONNECTED", session['token_data'], party.access_token_user_map)
+    print(int(time.time()), session.get('token_expire', -1), sys.maxsize)
+
+    if int(time.time()) > session.get('token_expire', sys.maxsize):
+        print(session.get('token_expire', -1))
+        del party.access_token_user_map[session['token_data']['access_token']]
+        return redirect(appauth.getUser())
+    if session['token_data']['access_token'] not in party.access_token_user_map:
+        print("adding user")
+        party.addUser(session['token_data'])
+    print(party.access_token_user_map)
+    emit('users', usersDisplayHTML(party.getUserValues('display_name')), BROADCAST=True)
 
 @socketio.on('disconnect')
 def handleDisconnect():
-    print(party.session_id_user_map[str(request.sid)])
-    print(request.sid, session["sid"])
-    del party.session_id_user_map[str(request.sid)]
+    print("DISCONNCTED", party.access_token_user_map, session["token_data"])
+    del party.access_token_user_map[session['token_data']['access_token']]
+    emit('users', usersDisplayHTML(party.getUserValues('display_name')), BROADCAST=True)
+    print("users:", party.access_token_user_map)
 
 
 @app.route('/')
 def index():
-    #print(request.sid)
-    resp = appauth.getUser()
-    return redirect(resp)
+    if 'token_data' not in session:
+        return redirect(appauth.getUser())
+    return render_template('home.html')
 
 @app.route('/callback/')
 def login():
-    session["token_data"] = appauth.getUserToken(request.args.get('code'))
+    session['token_data'] = appauth.getUserToken(request.args.get('code'))
+    if 'token_expire' not in session:
+        session['token_expire'] = int(time.time()) + session['token_data']['expires_in']
     print("SESSION TOKEN DATA", session["token_data"])
     return redirect(url_for('home'))
 
 @app.route('/home/', methods=["GET", "POST"])
 def home():
-    print(request.args)
-    #if request.sid not in party.session_id_user_map.keys():
-    #    return redirect(appauth.getUser())
+    print("HOME", party.access_token_user_map)
+    if 'token_data' not in session:
+        return redirect(appauth.getUser())
+    return render_template('home.html')
+
+@app.route('/temp/')
+def temp():
+    spotify = spotipy.Spotify(auth_manager=spotipy.SpotifyOAuth(username="temp"))
+    print(spotify.me())
     return render_template('home.html')
 
 if __name__ == "__main__":

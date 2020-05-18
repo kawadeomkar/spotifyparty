@@ -14,9 +14,16 @@
             	});
 
             	socket.on('search', function(msg) {
+                    $("#messages").empty();
             		$("#messages").append(msg);
-            		console.log('Received message');
+            		console.log('Received search results');
             	});
+
+                socket.on('users', function(msg) {
+                    $("#users").empty();
+                    $("#users").append(msg);
+            		console.log('Received users');
+                });
 
             	$('#sendbutton').on('click', function() {
             		socket.emit('search', $('#query').val());
@@ -28,5 +35,6 @@
         <ul id="messages"></ul>
         <input type="text" id="query">
         <button id="sendbutton">Send</button>
+        <ul id="users"></ul>
     </body>
 </html>
