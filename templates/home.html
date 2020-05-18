@@ -8,16 +8,25 @@
     <body>
         <script type="text/javascript">
             $(document).ready(function() {
-            	var socket = io.connect('http://localhost:5000');
+            	var socket = io();
+                socket.connect('http://localhost:5000');
+
             	socket.on('connect', function() {
             		socket.send('User has connected!');
             	});
 
             	socket.on('search', function(msg) {
-                    $("#messages").empty();
-            		$("#messages").append(msg);
+                    $("#songs").empty();
+            		$("#songs").append(msg);
             		console.log('Received search results');
             	});
+
+                socket.on('start_playback', function(msg) {
+                    if ($("now_playing").length == 1) {
+                        $("now_playing").empty()
+                    }
+                    $("body").append($("<p></p>").text("Now playing: " + msg));
+                });
 
                 socket.on('users', function(msg) {
                     $("#users").empty();
@@ -27,14 +36,23 @@
 
             	$('#sendbutton').on('click', function() {
             		socket.emit('search', $('#query').val());
-            		$('#query').val('');
                     console.log('in search handler');
             	});
+
+                $('#songs').on('click', 'li', function() {
+                    console.log($(this).attr('value'));
+                    socket.emit('start_playback', $(this).attr('value'));
+                });
             });
-            </script>
-        <ul id="messages"></ul>
+        </script>
+        <div id="now_playing">
+        </div>
+        <p>Queue:</p>
+        <ul id="queue"></ul>
+        <p>Users:</p>
+        <ul id="users"></ul>
         <input type="text" id="query">
         <button id="sendbutton">Send</button>
-        <ul id="users"></ul>
+        <ul id="songs"></ul>
     </body>
 </html>

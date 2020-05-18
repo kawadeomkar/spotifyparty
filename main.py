@@ -16,6 +16,12 @@ socketio = SocketIO(app)
 
 party = Server()
 
+@socketio.on('start_playback')
+def handleSearchClick(msg):
+    sp = party.access_token_user_map[session["token_data"]["access_token"]].Spotify
+    resp = sp.start_playback(uris=[msg])
+    emit('start_playback', resp)
+
 @socketio.on('search')
 def handleMessage(msg):
     sp = party.access_token_user_map[session["token_data"]["access_token"]].Spotify
@@ -47,9 +53,11 @@ def handleConnect():
     print("CONNECTED", session['token_data'], party.access_token_user_map)
     print(int(time.time()), session.get('token_expire', -1), sys.maxsize)
 
-    if int(time.time()) > session.get('token_expire', sys.maxsize):
+    if 'token_expire' not in session or int(time.time()) > session.get('token_expire'):
         print(session.get('token_expire', -1))
-        del party.access_token_user_map[session['token_data']['access_token']]
+        print("REDIRECTING")
+        if 'token_data' in session and session['token_data']['access_token'] in party.access_token_user_map:
+            del party.access_token_user_map[session['token_data']['access_token']]
         return redirect(appauth.getUser())
     if session['token_data']['access_token'] not in party.access_token_user_map:
         print("adding user")
@@ -76,7 +84,7 @@ def login():
     session['token_data'] = appauth.getUserToken(request.args.get('code'))
     if 'token_expire' not in session:
         session['token_expire'] = int(time.time()) + session['token_data']['expires_in']
-    print("SESSION TOKEN DATA", session["token_data"])
+    print("SESSION TOKEN DATA", session["token_data"], "AAAAAAAA", session["token_expire"])
     return redirect(url_for('home'))
 
 @app.route('/home/', methods=["GET", "POST"])
@@ -84,6 +92,7 @@ def home():
     print("HOME", party.access_token_user_map)
     if 'token_data' not in session:
         return redirect(appauth.getUser())
+    print(session['token_data'])
     return render_template('home.html')
 
 @app.route('/temp/')

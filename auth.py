@@ -1,4 +1,5 @@
 import base64, json, requests
+import logging
 
 AUTH_URL = 'https://accounts.spotify.com/authorize/?'
 AUTH_TOKEN = 'https://accounts.spotify.com/api/token/'
@@ -26,7 +27,9 @@ def getToken(code, client_id, client_secret, redirect_uri):
     if post.status_code != 200:
         print(post.status_code, post.text)
         if post.status_code == 400:
-            raise Exception # TODO: handle invalid auth code error
+            # TODO: handle invalid auth code error
+            logging.error("400: AUTH TOKEN EXPIRED")
+            raise Exception
         raise Exception
     return json.loads(post.text)
 
