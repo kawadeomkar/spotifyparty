@@ -8,8 +8,7 @@
     <body>
         <script type="text/javascript">
             $(document).ready(function() {
-            	var socket = io();
-                socket.connect('http://localhost:5000');
+                var socket = io.connect(null, {port: 5000, rememberTransport: false});
 
             	socket.on('connect', function() {
             		socket.send('User has connected!');
