@@ -21,10 +21,11 @@
             	});
 
                 socket.on('start_playback', function(msg) {
+                    console.log('Started playback');
                     if ($("now_playing").length == 1) {
                         $("now_playing").empty()
                     }
-                    $("body").append($("<p></p>").text("Now playing: " + msg));
+                    $("#now_playing").append($("<p></p>").text("Now playing: " + msg));
                 });
 
                 socket.on('users', function(msg) {
@@ -44,6 +45,7 @@
                 });
             });
         </script>
+        <h3>CHANNEL ID: 59AX</h3>
         <div id="now_playing">
         </div>
         <p>Queue:</p>

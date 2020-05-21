@@ -20,7 +20,7 @@ party = Server()
 def handleSearchClick(msg):
     sp = party.access_token_user_map[session["token_data"]["access_token"]].Spotify
     resp = sp.start_playback(uris=[msg])
-    emit('start_playback', resp)
+    emit('start_playback', msg)
 
 @socketio.on('search')
 def handleMessage(msg):
