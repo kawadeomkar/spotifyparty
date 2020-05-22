@@ -22,17 +22,50 @@
 
                 socket.on('start_playback', function(msg) {
                     console.log('Started playback');
-                    if ($("now_playing").length == 1) {
-                        $("now_playing").empty()
+                    if ($('#now_playing').length == 1) {
+                        $('#now_playing').empty()
                     }
-                    $("#now_playing").append($("<p></p>").text("Now playing: " + msg));
+                    $('#now_playing').append($('<p></p>').text('Now playing: ' + msg));
                 });
 
-                socket.on('users', function(msg) {
-                    $("#users").empty();
-                    $("#users").append(msg);
+                socket.on('#queue', function(msg) {
+                    $('#queue').append(msg);
+            		console.log('Updated queue');
+                });
+
+
+                socket.on('#users', function(msg) {
+                    $('#users').empty();
+                    $('#users').append(msg);
             		console.log('Received users');
                 });
+
+                socket.on('#host', function(msg) {
+                    $('#host').empty();
+                    $('#host').append(msg);
+            		console.log('Received users');
+                });
+
+                socket.on('#host_control', function(msg) {
+                    $('#host_control').empty();
+                    $('#host_control').append(msg);
+            		console.log('Received users');
+                });
+
+                $('#host_sync').on('click', function() {
+            		socket.emit('host_control', 'sync');
+                    console.log('Host control: Sync button pressed');
+            	});
+
+                $('#host_play').on('click', function() {
+            		socket.emit('host_control', 'play');
+                    console.log('Host control: Play button pressed');
+            	});
+
+                $('#host_pause').on('click', function() {
+            		socket.emit('host_control', 'pause');
+                    console.log('Host control: Pause button pressed');
+            	});
 
             	$('#sendbutton').on('click', function() {
             		socket.emit('search', $('#query').val());
@@ -47,6 +80,10 @@
         </script>
         <h3>CHANNEL ID: 59AX</h3>
         <div id="now_playing">
+        </div>
+        <div id="host">
+        </div>
+        <div id="host_control">
         </div>
         <p>Queue:</p>
         <ul id="queue"></ul>

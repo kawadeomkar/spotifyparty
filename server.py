@@ -9,6 +9,7 @@ class Server():
     access_token_user_map = {}
     queue = []
     scopes = "user-read-playback-state user-modify-playback-state user-read-currently-playing streaming"
+    host = ""
 
     userValues = {
         'display_name': lambda x: x.username['display_name'],
@@ -19,12 +20,15 @@ class Server():
         pass
 
     def addUser(self, token_data, refresh=None):
+        host = True if not self.access_token_user_map.keys() else False
         us = User(
             token_data['access_token'],
             token_data['refresh_token'],
             token_data['scope'],
-            host = True if not self.access_token_user_map.keys() else False
+            host = host
         )
+        if host:
+            self.host = us.username
         self.access_token_user_map[token_data['access_token']] = us
         print("adding token to tmap", self.access_token_user_map)
 

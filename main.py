@@ -16,6 +16,17 @@ socketio = SocketIO(app)
 
 party = Server()
 
+@socketio.on('host_control')
+def handleHostControl(msg):
+    sp = party.access_token_user_map[session["token_data"]["access_token"]].Spotify
+    if msg == 'sync':
+        pass
+    elif msg == 'play':
+        pass
+    elif msg == 'pause':
+        pass
+
+
 @socketio.on('start_playback')
 def handleSearchClick(msg):
     sp = party.access_token_user_map[session["token_data"]["access_token"]].Spotify
@@ -47,6 +58,17 @@ def usersDisplayHTML(users):
             </li>
             """, users)))
 
+def hostDisplayHTML(name):
+    return f"""
+        <p>Host: {name}</p>
+        """
+
+def hostControl():
+    return f"""
+        <button id="host_sync">Sync</button>
+        <button id="host_play">Play</button>
+        <button id="host_pause">Pause</button>
+        """
 
 @socketio.on('connect')
 def handleConnect():
@@ -62,8 +84,11 @@ def handleConnect():
     if session['token_data']['access_token'] not in party.access_token_user_map:
         print("adding user")
         party.addUser(session['token_data'])
-    print(party.access_token_user_map)
+
+    if party.access_token_user_map[session['token_data']['access_token']].host:
+        emit('host_control', hostControl())
     emit('users', usersDisplayHTML(party.getUserValues('display_name')), BROADCAST=True)
+    emit('host', hostDisplayHTML(party.host))
 
 @socketio.on('disconnect')
 def handleDisconnect():
