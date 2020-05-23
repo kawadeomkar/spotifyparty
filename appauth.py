@@ -1,20 +1,19 @@
 from auth import getAuth, refreshAuth, getToken
+import os
 
-CLIENT_ID = "c1b3feade2424df8aac21d2280aa9304"
-CLIENT_SECRET = "b8de723d1377470c8838c39e68c18894"
-
+SPOTIPY_CLIENT_ID = os.environ["SPOTIPY_CLIENT_ID"]
+SPOTIPY_CLIENT_SECRET = os.environ["SPOTIPY_CLIENT_ID"]
+SPOTIPY_REDIRECT_URL = os.environ["SPOTIPY_REDIRECT_URL"]
 PORT = "5000"
-CALLBACK_URL = "http://localhost"
-
-SCOPE = "streaming"
 TOKEN_DATA = []
-
+# TODO: move scope from server
+SCOPE = "streaming"
 
 def getUser():
-    return getAuth(CLIENT_ID, "{}:{}/callback/".format(CALLBACK_URL, PORT), SCOPE)
+    return getAuth(SPOTIPY_CLIENT_ID, "{}:{}/callback/".format(SPOTIPY_REDIRECT_URI, PORT), SCOPE)
 
 def getUserToken(code):
-    TOKEN_DATA = getToken(code, CLIENT_ID, CLIENT_SECRET, "{}:{}/callback/".format(CALLBACK_URL, PORT))
+    TOKEN_DATA = getToken(code, SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET, "{}:{}/callback/".format(SPOTIPY_REDIRECT_URI, PORT))
     return TOKEN_DATA
 
 def refreshToken(time):
